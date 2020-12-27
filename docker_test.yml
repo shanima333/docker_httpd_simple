@@ -1,0 +1,68 @@
+---
+- hosts: all
+  become: true
+  vars:
+    - url: https://www.free-css.com/assets/files/free-css-templates/download/page261/yeinydd.zip
+      image: httpd:2.4
+      name: webserver
+
+  tasks:
+    - name: Install aptitude
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+
+    - name: Install system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      with_items: [ 'apt-transport-https', 'software-properties-common', 'python3-pip', 'python3-setuptools', 'unzip']
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt: update_cache=yes name=docker-ce state=latest
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker  
+
+    - name: "Download wordpress"
+      get_url:
+        url: "{{ url }}"
+        dest: /tmp/
+
+    - name: "Extract wordpress tar file"
+      unarchive:
+        src: /tmp/yeinydd.zip
+        dest: /tmp/
+        remote_src: true
+
+    - name: "Copy website files to document root"
+      copy:
+        src: /tmp/yeinydd
+        dest: /root/
+        remote_src: true
+
+    - name: Pull an image
+      docker_image:
+        name: "{{ image }}"
+        source: pull
+
+
+    - name: Launch apache webserver container
+      docker_container:
+        name: "{{ name }}"
+        image: "{{ image }}"
+        state: started
+        exposed_ports:
+        - "80"
+        ports:
+        - "8080:80"
+        volumes:
+        - /root/yeinydd:/usr/local/apache2/htdocs/
+
