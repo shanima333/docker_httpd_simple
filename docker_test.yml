@@ -5,6 +5,7 @@
     - url: https://www.free-css.com/assets/files/free-css-templates/download/page261/yeinydd.zip
       image: httpd:2.4
       name: webserver
+      website_name: yeinydd
 
   tasks:
     - name: Install aptitude
@@ -34,17 +35,17 @@
     - name: Download website
       get_url:
         url: "{{ url }}"
-        dest: /tmp/
+        dest: /tmp/website.zip
 
     - name: Extract website files
       unarchive:
-        src: /tmp/yeinydd.zip
+        src: /tmp/website.zip
         dest: /tmp/
         remote_src: true
 
     - name: Copy website files to root
       copy:
-        src: /tmp/yeinydd
+        src: /tmp/{{ website_name }}
         dest: /root/
         remote_src: true
 
@@ -64,5 +65,5 @@
         ports:
         - "8080:80"
         volumes:
-        - /root/yeinydd:/usr/local/apache2/htdocs/
+        - /root/{{ website_name }}:/usr/local/apache2/htdocs/
 
