@@ -31,18 +31,18 @@
       pip:
         name: docker  
 
-    - name: "Download wordpress"
+    - name: Download website
       get_url:
         url: "{{ url }}"
         dest: /tmp/
 
-    - name: "Extract wordpress tar file"
+    - name: Extract website files
       unarchive:
         src: /tmp/yeinydd.zip
         dest: /tmp/
         remote_src: true
 
-    - name: "Copy website files to document root"
+    - name: Copy website files to root
       copy:
         src: /tmp/yeinydd
         dest: /root/
