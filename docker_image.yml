@@ -1,0 +1,81 @@
+---
+- hosts: ubuntu
+  gather_facts: no
+  become: true
+  vars_files:
+    - img.vars
+  vars_prompt:
+    - name: username
+      prompt: "Enter Username"
+      private: no
+    - name: pass
+      prompt: "Enter dockerhub password"
+ 
+  tasks:
+
+    - name: Download website
+      get_url:
+        url: "{{ url }}"
+        dest: /tmp/website.zip
+
+    - name: Upload httpdconf file
+      template:
+        src: httpd.conf
+        dest: "{{ path }}"
+
+    - name: Extract website files
+      unarchive:
+        src: /tmp/website.zip
+        dest: /tmp/
+        remote_src: true
+
+    - name: Copy website files to root
+      copy:
+        src: /tmp/{{ website_name }}
+        dest: "{{ path }}"
+        remote_src: true
+
+    - name: "Copy httpd.conf to root"
+      copy:
+        src: httpd.conf
+        dest: /root/
+
+
+    - name: "Create build directory"
+      file:
+        path: /root/myapache
+        state: directory
+        mode: '0755'
+
+    - name: "Copy Dockerfile"
+      template:
+        src: ./Dockerfile
+        dest: /root/myapache/Dockerfile
+    
+    - name: "Build container image"
+      docker_image:
+        name: "{{ image }}"
+        build:
+          path: /root/myapache
+        state: present
+
+    - name: Launch apache webserver container
+      docker_container:
+        name: "{{ name }}"
+        image: "{{ image }}"
+        state: started
+        ports:
+        - "80:8080"
+
+    - name: Log into DockerHub
+      docker_login:
+        username: "{{ username }}"
+        password: "{{ pass }}" 
+
+    - name: Tag and push to docker hub
+      docker_image:
+        name: "{{ image }}"
+        repository: shanimakthahir/myapache:latest
+        push: yes
+        source: local    
+     
