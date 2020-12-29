@@ -12,8 +12,15 @@
       apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
 
     - name: Install system packages
-      apt: name={{ item }} state=latest update_cache=yes
-      with_items: [ 'apt-transport-https', 'software-properties-common', 'python3-pip', 'python3-setuptools', 'unzip']
+      apt: name={{ item }} 
+        state=latest 
+        update_cache=yes
+      with_items:  
+        - apt-transport-https
+        - software-properties-common
+        - python3-pip
+        - python3-setuptools
+        - unzip 
 
     - name: Add Docker GPG apt Key
       apt_key:
@@ -66,4 +73,3 @@
         - "8080:80"
         volumes:
         - /root/{{ website_name }}:/usr/local/apache2/htdocs/
-
